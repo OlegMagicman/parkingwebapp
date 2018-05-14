@@ -14,27 +14,27 @@ namespace ParkingWebAPI.Controllers
     {
         public DataLoadService service { get; set; }
 
-        public ParkingController()
+        public ParkingController(DataLoadService service)
         {
-            this.service = DataLoadService.Instance;
+            this.service = service;
         }
 
         // GET: api/Parking/free
-        [HttpGet, Route("/api/Parking/free")]
+        [HttpGet]
         public int GetFreePlaces()
         {
             return service.parking.GetFreePlacesCount();
         }
 
         // GET: api/Parking/using
-        [HttpGet, Route("/api/Parking/using")]
+        [HttpGet]
         public int GetUsingPlaces()
         {
             return service.parking.UsingPlacesCount();
         }
 
         // GET: api/Parking/earned
-        [HttpGet, Route("/api/Parking/earned")]
+        [HttpGet]
         public int GetEarnedMoney()
         {
             return service.parking.GetEarnedMoney();

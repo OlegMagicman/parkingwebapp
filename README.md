@@ -14,12 +14,12 @@ dotnet run
 ## API Reference  
 ### Cars  
 
-| Method | HTTP Request                          | Description             |
-| -------| ------------------------------------- | ----------------------- |
-| Get    | GET /api/Cars                         | Return list of cars     |
-| Get    | GET /api/Cars/{id}                    | Return info about car   |
-| Delete | DELETE /api/Cars/{id}                 | Remove car from parking |
-| Post   | POST /api/Cars  Body:{"cartype":int}  | Add car to parking      |
+| Method    | HTTP Request              | Description             |
+| --------- | ------------------------- | ----------------------- |
+| GetCars   | GET /api/Cars             | Return list of cars     |
+| GetCar    | GET /api/Cars/{id}        | Return info about car   |
+| RemoveCar | DELETE /api/Cars/{id}     | Remove car from parking |
+| AddCar    | POST /api/Cars/{cartype}  | Add car to parking      |
 
 ### Parking  
 
@@ -31,9 +31,9 @@ dotnet run
 
 ### Transaction  
 
-| Method                    | HTTP Request                                                   | Description                         |
-| ------------------------- | -------------------------------------------------------------- | ----------------------------------- |
-| Get                       | GET /api/Transaction                                           | Transaction.log data                |
-| GetLastMinuteTransactions | GET /api/Transaction/GetLastMinuteTransactions                 | Transactions of last minute         |
-| GetLastMinuteTransactions | GET /api/Transaction/GetLastMinuteTransactions/{id}            | Transactions of last minute for car |
-| Put                       | PUT /api/Transaction/RefillBalance/{id}  Body:{"sum":int}      | Raise car balance                   |
+| Method                    | HTTP Request                                        | Description                         |
+| ------------------------- | --------------------------------------------------- | ----------------------------------- |
+| GetTransactions           | GET /api/Transaction/GetTransactions                | Transaction.log data                |
+| GetLastMinuteTransactions | GET /api/Transaction/GetLastMinuteTransactions      | Transactions of last minute         |
+| GetLastMinuteTransactions | GET /api/Transaction/GetLastMinuteTransactions/{id} | Transactions of last minute for car |
+| Balance                   | PUT /api/Transaction/Balance/{id}/{sum}             | Raise car balance                   |

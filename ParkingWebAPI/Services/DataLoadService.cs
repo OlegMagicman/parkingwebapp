@@ -11,13 +11,16 @@ namespace ParkingWebAPI.Services
     {
         public Parking parking { get; set; }
 
+        public Settings settings { get; set; }
+
         private static readonly Lazy<DataLoadService> lazy = new Lazy<DataLoadService>(() => new DataLoadService());
 
         public static DataLoadService Instance { get { return lazy.Value; } }
 
         private DataLoadService()
         {
-            parking = new Parking();
+            settings = Settings.Instance;
+            parking = new Parking(settings);
             TimerCallback TimerDelegate1 = new TimerCallback(parking.TakeFineFromBalance);
             Timer fineTimer = new Timer(TimerDelegate1, parking, 3000, 3000);
 
