@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ParkingLibrary;
+using ParkingWebAPI.Services;
 
 namespace ParkingWebAPI.Controllers
 {
@@ -12,39 +12,44 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Cars")]
     public class CarsController : Controller
     {
-        private Parking parking;
+        public DataLoadService service { get; set; }
 
-        private CarsController()
+        public CarsController()
         {
-            parking = new Parking();
+            this.service = DataLoadService.Instance;
         }
 
         // GET: api/Cars
         [HttpGet]
-        public IEnumerable<Car> Get()
+        public IEnumerable<object> Get()
         {
-            return parking.GetCarsList();
+            return service.parking.GetCarsList();
         }
 
         // GET: api/Cars/5
-        [HttpGet("{id}", Name = "Get")]
-        public Car Get(int id)
+        [HttpGet("{id}")]
+        public object Get(int id)
         {
-            return parking.GetCar(id);
+            return service.parking.GetCar(id);
         }
 
-        // DELETE: api/ApiWithActions/5
+        // DELETE: api/Cars/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            parking.RemoveCar(id);
+            service.parking.RemoveCar(id);
         }
 
         // POST: api/Cars
         [HttpPost]
-        public void Post([FromBody]int balance, [FromBody]int type)
+        public void Post([FromBody] CarPostModel model)
         {
-            parking.AddCar(balance, type);
+            service.parking.AddCar(model.cartype);
         }
+    }
+
+    public class CarPostModel
+    {
+        public int cartype { get; set; }
     }
 }
