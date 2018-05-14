@@ -14,9 +14,9 @@ namespace ParkingWebAPI.Controllers
     {
         public DataLoadService service { get; set; }
 
-        public CarsController()
+        public CarsController(DataLoadService service)
         {
-            this.service = DataLoadService.Instance;
+            this.service = service;
         }
 
         // GET: api/Cars

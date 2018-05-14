@@ -14,35 +14,35 @@ namespace ParkingWebAPI.Controllers
     {
         DataLoadService service { get; set; }
 
-        public TransactionController()
+        public TransactionController(DataLoadService service)
         {
-            this.service = DataLoadService.Instance;
+            this.service = service;
         }
 
         // GET: api/Transaction
-        [HttpGet, Route("/api/Transaction")]
+        [HttpGet]
         public List<Tuple<string, string, string>> GetTransactions()
         {
             return service.parking.ShowAllTransactions();
         }
 
         // GET: api/Transaction/GetLastMinuteTransactions
-        [HttpGet, Route("/api/Transaction/GetLastMinuteTransactions")]
+        [HttpGet]
         public IEnumerable<object> GetLastMinuteTransactions()
         {
             return service.parking.GetLastMinuteTransactions();
         }
 
-        // GET: api/Transaction/GetLastMinuteTransactions/1
-        [HttpGet, Route("/api/Transaction/GetLastMinuteTransactions/{id}")]
+        // GET: api/Transaction/GetLastMinuteTransactions/{id}
+        [HttpGet("{id}")]
         public IEnumerable<object> GetLastMinuteTransactions(int id)
         {
             return service.parking.GetLastMinuteTransactions(id);
         }
 
-        // PUT: api/Transaction/Balance/1/100
-        [HttpPut, Route("/api/Transaction/Balance/{id}/{sum}")]
-        public void UpdateCarBalance(int id, int sum)
+        // PUT: api/Transaction/Balance/{id}/{sum}
+        [HttpPut("{id}/{sum}")]
+        public void Balance(int id, int sum)
         {
             service.parking.RaiseCarBalance(id, sum);
         }
