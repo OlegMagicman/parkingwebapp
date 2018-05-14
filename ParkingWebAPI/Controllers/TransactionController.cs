@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ParkingLibrary;
+using ParkingWebAPI.Services;
 
 namespace ParkingWebAPI.Controllers
 {
@@ -12,38 +12,44 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Transaction")]
     public class TransactionController : Controller
     {
-        Parking parking;
+        DataLoadService service { get; set; }
+
         public TransactionController()
         {
-            parking = new Parking();
+            this.service = DataLoadService.Instance;
         }
 
         // GET: api/Transaction
-        [HttpGet]
-        public IEnumerable<string> Get()
+        [HttpGet, Route("/api/Transaction")]
+        public List<Tuple<string, string, string>> Get()
         {
-            return parking.ShowAllTransactions();
+            return service.parking.ShowAllTransactions();
         }
 
-        // GET: api/Transaction/5
-        [HttpGet("GetLastMinuteTransactions")]
-        public IEnumerable<Transaction> GetLastMinuteTransactions()
+        // GET: api/Transaction/GetLastMinuteTransactions
+        [HttpGet, Route("/api/Transaction/GetLastMinuteTransactions")]
+        public IEnumerable<object> GetLastMinuteTransactions()
         {
-            return parking.GetLastMinuteTransactions();
+            return service.parking.GetLastMinuteTransactions();
         }
 
-        // GET: api/Transaction/5
-        [HttpGet("GetLastMinuteTransactions/{id}")]
-        public IEnumerable<Transaction> GetLastMinuteTransactions(int id)
+        // GET: api/Transaction/GetLastMinuteTransactions/1
+        [HttpGet, Route("/api/Transaction/GetLastMinuteTransactions/{id}")]
+        public IEnumerable<object> GetLastMinuteTransactions(int id)
         {
-            return parking.GetLastMinuteTransactions(id);
+            return service.parking.GetLastMinuteTransactions(id);
         }
 
         // PUT: api/Transaction/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]int sum)
+        [HttpPut, Route("/api/Transaction/RefillBalance/{id}")]
+        public void Put(int id, [FromBody] TransactionPostModel model)
         {
-            parking.RaiseCarBalance(id, sum);
+            service.parking.RaiseCarBalance(id, model.sum);
         }
+    }
+
+    public class TransactionPostModel
+    {
+        public int sum { get; set; }
     }
 }
