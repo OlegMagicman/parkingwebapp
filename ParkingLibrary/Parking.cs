@@ -17,74 +17,91 @@ namespace ParkingLibrary
         public Settings Settings { get; }
         public CarType CarType { get; }
 
-        public Parking()
+        public Parking(Settings settings)
         {
             CarList = new List<Car>();
             LastAddedCarId = 0;
             TransactionList = new List<Transaction>();
             EarnedMoney = 0;
             LastMinuteMoney = 0;
-            Settings = Settings.Instance;
+            Settings = settings;
             CarType = new CarType();
         }
 
-        public void AddCar(int type)
-        {
-            if (GetFreePlacesCount() == 0)
-            {
-                Console.WriteLine("No enough free space");
-                return;
-            }
-            LastAddedCarId++;
-            var car = new Car(LastAddedCarId, type);
-            CarList.Add(car);
-        }
-
-        public void RemoveCar(int id)
+        public void AddCar(string type)
         {
             try
             {
-                var car = CarList.SingleOrDefault(c => c.Id == id);
-                if (car != null || car.Balance >= 0)
-                    CarList.Remove(car);
+                if (int.TryParse(type, out int cartype))
+                {
+                    if (Settings.totalSpace - CarList.Count() <= 0)
+                    {
+                        Console.WriteLine("No enough free space");
+                        return;
+                    }
+
+                    LastAddedCarId++;
+                    var car = new Car(LastAddedCarId, cartype);
+                    CarList.Add(car);
+                }   
             }
-            catch (ArgumentNullException)
+            catch (ArgumentException)
             {
-                Console.WriteLine("Car ID has not defined");
+                Console.WriteLine("Wrong input data");
             }
-            catch (ArgumentOutOfRangeException)
+        }
+
+        public void RemoveCar(string id)
+        {
+            if (int.TryParse(id, out int carId))
             {
-                Console.WriteLine("Choose correct ID");
+                try
+                {
+                    var car = CarList.SingleOrDefault(c => c.Id == carId);
+                    if (car != null || car.Balance >= 0)
+                        CarList.Remove(car);
+                }
+                catch (ArgumentNullException)
+                {
+                    Console.WriteLine("Car ID has not defined");
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Console.WriteLine("Choose correct ID");
+                }
             }
         }
 
         public List<Car> GetCarsList()
         {
-            foreach (var c in CarList)
-            {
-                Console.WriteLine("{0} CarType: {1}, Balance: {2}", c.Id, c.CarType, c.Balance);
-            }
             return CarList;
         }
 
-        public Car GetCar(int id)
+        public Car GetCar(string id)
         {
-            return CarList.SingleOrDefault(c => c.Id == id);
+            if (int.TryParse(id, out int carId))
+            {
+                return CarList.Single(c => c.Id == carId);
+            }
+            return null;
         }
 
-        public Car RaiseCarBalance(int id, int sum)
+        public Car RaiseCarBalance(string id, string sum)
         {
-            try
+            if (int.TryParse(id, out int carId) && int.TryParse(sum, out int cash))
             {
-                var car = CarList.SingleOrDefault(c => c.Id == id);
-                car.ChangeBalance(sum, true);
-                Console.WriteLine("Balance for car with id {0} was raised by {1}", id, sum);
-                TransactionList.Add(new Transaction(id, sum));
-                return car;
-            }
-            catch (ArgumentNullException)
-            {
-                Console.WriteLine("Something went wrong");
+                try
+                {
+                    var car = CarList.Single(c => c.Id == carId);
+                    if (car != null)
+                        car.ChangeBalance(cash, true);
+                    TransactionList.Add(new Transaction(carId, cash));
+                    return car;
+                }
+                catch (ArgumentNullException)
+                {
+                    Console.WriteLine("Something went wrong");
+                }
             }
             return null;
         }
@@ -129,12 +146,16 @@ namespace ParkingLibrary
                     .ToList();
         }
 
-        public List<Transaction> GetLastMinuteTransactions(int id)
+        public List<Transaction> GetLastMinuteTransactions(string id)
         {
-            return (from transaction in TransactionList
-                    where transaction.DateTime.AddMinutes(1).Minute >= DateTime.Now.Minute
-                    select transaction)
+            if (int.TryParse(id, out int carId))
+            {
+                return (from transaction in TransactionList
+                        where transaction.DateTime.AddMinutes(1).Minute >= DateTime.Now.Minute
+                        select transaction)
                     .ToList();
+            }
+            return null;
         }
 
         public void LogLastMinuteMoney(object StateObj)

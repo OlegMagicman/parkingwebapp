@@ -28,21 +28,21 @@ namespace ParkingWebAPI.Controllers
 
         // GET: api/Cars/5
         [HttpGet("{id}")]
-        public object GetCar(int id)
+        public object GetCar(string id)
         {
             return service.parking.GetCar(id);
         }
 
         // DELETE: api/Cars/5
         [HttpDelete("{id}")]
-        public void DeleteCar(int id)
+        public void DeleteCar(string id)
         {
             service.parking.RemoveCar(id);
         }
 
         // POST: api/Cars/5
         [HttpPost("{cartype}")]
-        public void AddCar(int cartype)
+        public void AddCar(string cartype)
         {
             service.parking.AddCar(cartype);
         }

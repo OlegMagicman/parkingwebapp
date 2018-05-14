@@ -35,14 +35,14 @@ namespace ParkingWebAPI.Controllers
 
         // GET: api/Transaction/GetLastMinuteTransactions/{id}
         [HttpGet("{id}")]
-        public IEnumerable<object> GetLastMinuteTransactions(int id)
+        public IEnumerable<object> GetLastMinuteTransactions(string id)
         {
             return service.parking.GetLastMinuteTransactions(id);
         }
 
         // PUT: api/Transaction/Balance/{id}/{sum}
         [HttpPut("{id}/{sum}")]
-        public void Balance(int id, int sum)
+        public void Balance(string id, string sum)
         {
             service.parking.RaiseCarBalance(id, sum);
         }
