@@ -21,7 +21,7 @@ namespace ParkingWebAPI.Controllers
 
         // GET: api/Transaction
         [HttpGet, Route("/api/Transaction")]
-        public List<Tuple<string, string, string>> Get()
+        public List<Tuple<string, string, string>> GetTransactions()
         {
             return service.parking.ShowAllTransactions();
         }
@@ -40,16 +40,11 @@ namespace ParkingWebAPI.Controllers
             return service.parking.GetLastMinuteTransactions(id);
         }
 
-        // PUT: api/Transaction/5
-        [HttpPut, Route("/api/Transaction/RefillBalance/{id}")]
-        public void Put(int id, [FromBody] TransactionPostModel model)
+        // PUT: api/Transaction/Balance/1/100
+        [HttpPut, Route("/api/Transaction/Balance/{id}/{sum}")]
+        public void UpdateCarBalance(int id, int sum)
         {
-            service.parking.RaiseCarBalance(id, model.sum);
+            service.parking.RaiseCarBalance(id, sum);
         }
-    }
-
-    public class TransactionPostModel
-    {
-        public int sum { get; set; }
     }
 }
