@@ -21,35 +21,30 @@ namespace ParkingWebAPI.Controllers
 
         // GET: api/Cars
         [HttpGet]
-        public IEnumerable<object> Get()
+        public IEnumerable<object> GetCars()
         {
             return service.parking.GetCarsList();
         }
 
         // GET: api/Cars/5
         [HttpGet("{id}")]
-        public object Get(int id)
+        public object GetCar(int id)
         {
             return service.parking.GetCar(id);
         }
 
         // DELETE: api/Cars/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public void DeleteCar(int id)
         {
             service.parking.RemoveCar(id);
         }
 
-        // POST: api/Cars
-        [HttpPost]
-        public void Post([FromBody] CarPostModel model)
+        // POST: api/Cars/5
+        [HttpPost("{cartype}")]
+        public void AddCar(int cartype)
         {
-            service.parking.AddCar(model.cartype);
+            service.parking.AddCar(cartype);
         }
-    }
-
-    public class CarPostModel
-    {
-        public int cartype { get; set; }
     }
 }
