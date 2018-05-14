@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ParkingLibrary;
+using ParkingWebAPI.Services;
 
 namespace ParkingWebAPI.Controllers
 {
@@ -12,32 +12,32 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Parking")]
     public class ParkingController : Controller
     {
-        private Parking parking;
+        public DataLoadService service { get; set; }
 
-        private ParkingController()
+        public ParkingController()
         {
-            parking = new Parking();
+            this.service = DataLoadService.Instance;
         }
 
         // GET: api/Parking/free
-        [HttpGet("free/")]
+        [HttpGet, Route("/api/Parking/free")]
         public int GetFreePlaces()
         {
-            return parking.GetFreePlacesCount();
+            return service.parking.GetFreePlacesCount();
         }
 
         // GET: api/Parking/using
-        [HttpGet("using/")]
+        [HttpGet, Route("/api/Parking/using")]
         public int GetUsingPlaces()
         {
-            return parking.UsingPlacesCount();
+            return service.parking.UsingPlacesCount();
         }
 
         // GET: api/Parking/earned
-        [HttpGet("earned/")]
+        [HttpGet, Route("/api/Parking/earned")]
         public int GetEarnedMoney()
         {
-            return parking.GetEarnedMoney();
+            return service.parking.GetEarnedMoney();
         }
     }
 }

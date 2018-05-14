@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,36 +28,16 @@ namespace ParkingLibrary
             CarType = new CarType();
         }
 
-        public void AddCar(int balance, int type)
+        public void AddCar(int type)
         {
             if (GetFreePlacesCount() == 0)
             {
                 Console.WriteLine("No enough free space");
                 return;
             }
-            int carType = 0;
-            switch (type)
-            {
-                case 1:
-                    carType = CarType.Passager;
-                    break;
-                case 2:
-                    carType = CarType.Truck;
-                    break;
-                case 3:
-                    carType = CarType.Bus;
-                    break;
-                case 4:
-                    carType = CarType.Motorcycles;
-                    break;
-                default:
-                    Console.WriteLine("Error! Choose correct type.");
-                    return;
-            }
-            var car = new Car(++LastAddedCarId, carType);
+            LastAddedCarId++;
+            var car = new Car(LastAddedCarId, type);
             CarList.Add(car);
-            Console.WriteLine("Car was successfully added!\n");
-            if (balance > 0) RaiseCarBalance(car.Id, balance);
         }
 
         public void RemoveCar(int id)
@@ -66,7 +45,7 @@ namespace ParkingLibrary
             try
             {
                 var car = CarList.SingleOrDefault(c => c.Id == id);
-                if (car != null && car.Balance >= 0)
+                if (car != null || car.Balance >= 0)
                     CarList.Remove(car);
             }
             catch (ArgumentNullException)
@@ -161,7 +140,7 @@ namespace ParkingLibrary
         public void LogLastMinuteMoney(object StateObj)
         {
             Parking State = (Parking)StateObj;
-            string log = DateTime.Now.ToString("[MM.dd.yyyy] ") + State.LastMinuteMoney;
+            string log = DateTime.Now.ToString("MM.dd.yyyy HH:mm ") + State.LastMinuteMoney;
             try
             {
                 using (StreamWriter sw = new StreamWriter(Settings.filePath, true, Encoding.Default))
@@ -180,23 +159,22 @@ namespace ParkingLibrary
             }
         }
 
-        public List<string> ShowAllTransactions()
+        public List<Tuple<string, string, string>> ShowAllTransactions()
         {
-            string strData = "[";
+            List<Tuple<string, string, string>> data = new List<Tuple<string, string, string>>();
             try
             {
                 using (StreamReader sw = new StreamReader(Settings.filePath, Encoding.Default))
                 {
                     string line;
-                    string[] token = new string[2];
                     while ((line = sw.ReadLine()) != null)
                     {
+                        string[] token = new string[3];
                         token = line.Split(" ");
-                        strData += ("{\"date:\"{0},\"cash:\"{1}},", token[0], token[1]);
+                        data.Add(Tuple.Create(token[0], token[1], token[2]));
                     }
                 }
-                strData += "]";
-                return JsonConvert.DeserializeObject<List<string>>(strData);
+                return data;
             }
             catch (FileNotFoundException)
             {
@@ -210,7 +188,7 @@ namespace ParkingLibrary
             {
                 Console.WriteLine(ex);
             }
-            return new List<string>();
+            return new List<Tuple<string, string, string>>();
         }
     }
 }
