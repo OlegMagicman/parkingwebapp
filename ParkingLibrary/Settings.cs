@@ -11,26 +11,23 @@ namespace ParkingLibrary
         private static readonly Lazy<Settings> lazy = new Lazy<Settings>(() => new Settings());
 
         public int timeout;
-        public Dictionary<int, int> prices;
+        public Dictionary<Car.CarTypes, int> prices;
         public int totalSpace;
         public int fine;
         public string filePath;
-        public CarType carType;
 
         public static Settings Instance { get { return lazy.Value; } }
 
         private Settings()
         {
-            carType = new CarType();
+            timeout = 3000;
 
-            timeout = 3;
-
-            prices = new Dictionary<int, int>
+            prices = new Dictionary<Car.CarTypes, int>
             {
-                [carType.Passager] = 3,
-                [carType.Truck] = 5,
-                [carType.Bus] = 2,
-                [carType.Motorcycles] = 1
+                [Car.CarTypes.passager] = 3,
+                [Car.CarTypes.truck] = 5,
+                [Car.CarTypes.bus] = 2,
+                [Car.CarTypes.motorcycles] = 1
             };
 
             totalSpace = 100;

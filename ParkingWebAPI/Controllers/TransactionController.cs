@@ -12,39 +12,44 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Transaction")]
     public class TransactionController : Controller
     {
-        DataLoadService service { get; set; }
+        private readonly DataLoadService Service;
+        private new ParkingLibrary.Response Response { get; set; }
 
         public TransactionController(DataLoadService service)
         {
-            this.service = service;
+            this.Service = service;
         }
 
         // GET: api/Transaction
-        [HttpGet]
-        public List<Tuple<string, string, string>> GetTransactions()
+        [HttpGet("GetTransactions")]
+        public IActionResult GetTransactions()
         {
-            return service.parking.ShowAllTransactions();
+            Response = Service.parking.ShowAllTransactions();
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // GET: api/Transaction/GetLastMinuteTransactions
-        [HttpGet]
-        public IEnumerable<object> GetLastMinuteTransactions()
+        [HttpGet("GetLastMinuteTransactions")]
+        public IActionResult GetLastMinuteTransactions()
         {
-            return service.parking.GetLastMinuteTransactions();
+            Response = Service.parking.GetLastMinuteTransactions();
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // GET: api/Transaction/GetLastMinuteTransactions/{id}
-        [HttpGet("{id}")]
-        public IEnumerable<object> GetLastMinuteTransactions(string id)
+        [HttpGet("GetLastMinuteTransactions/{id}")]
+        public IActionResult GetLastMinuteTransactions(string id)
         {
-            return service.parking.GetLastMinuteTransactions(id);
+            Response = Service.parking.GetLastMinuteTransactions(id);
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // PUT: api/Transaction/Balance/{id}/{sum}
-        [HttpPut("{id}/{sum}")]
-        public void Balance(string id, string sum)
+        [HttpPut("Balance/{id}/{sum}")]
+        public IActionResult Balance(string id, string sum)
         {
-            service.parking.RaiseCarBalance(id, sum);
+            Response = Service.parking.RaiseCarBalance(id, sum);
+            return StatusCode(Response.Status, Response.Data);
         }
     }
 }

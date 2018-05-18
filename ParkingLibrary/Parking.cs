@@ -2,22 +2,26 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace ParkingLibrary
 {
-    public class Parking
+    public sealed class Parking
     {
-        public List<Car> CarList { get; private set; }
-        public int LastAddedCarId { get; private set; }
-        public List<Transaction> TransactionList { get; private set; }
-        public int EarnedMoney { get; private set; }
-        public int LastMinuteMoney { get; private set; }
-        public Settings Settings { get; }
-        public CarType CarType { get; }
+        private static readonly Lazy<Parking> lazy = new Lazy<Parking>(() => new Parking(Settings.Instance));
 
-        public Parking(Settings settings)
+        public static Parking Instance { get { return lazy.Value; } }
+
+        private List<Car> CarList { get; set; }
+        private List<Transaction> TransactionList { get; set; }
+        private Settings Settings { get; }
+        private int EarnedMoney { get; set; }
+        private int LastAddedCarId { get; set; }
+        private int LastMinuteMoney { get; set; }
+
+        private Parking(Settings settings)
         {
             CarList = new List<Car>();
             LastAddedCarId = 0;
@@ -25,85 +29,148 @@ namespace ParkingLibrary
             EarnedMoney = 0;
             LastMinuteMoney = 0;
             Settings = settings;
-            CarType = new CarType();
+
+            TimerCallback TimerDelegate1 = new TimerCallback(TakeFineFromBalance);
+            Timer fineTimer = new Timer(TimerDelegate1, this, Settings.timeout, Settings.timeout);
+
+            TimerCallback TimerDelegate2 = new TimerCallback(LogLastMinuteMoney);
+            Timer logTimer = new Timer(TimerDelegate2, this, 60000, 60000);
         }
 
-        public void AddCar(string type)
+        public Response AddCar(string type, string balance)
         {
             try
             {
-                if (int.TryParse(type, out int cartype))
+                if (Settings.totalSpace - CarList.Count() <= 0)
                 {
-                    if (Settings.totalSpace - CarList.Count() <= 0)
-                    {
-                        Console.WriteLine("No enough free space");
-                        return;
-                    }
+                    return new Response((int)HttpStatusCode.OK, new Dictionary<string, string>() { { "Error", "No enough space!" } });
+                }
 
-                    LastAddedCarId++;
-                    var car = new Car(LastAddedCarId, cartype);
-                    CarList.Add(car);
-                }   
+                if (!int.TryParse(type, out int Type))
+                {
+                    throw new ArgumentException("Wrong car type!");
+                }
+
+                if (!int.TryParse(balance, out int Balance))
+                {
+                    throw new ArgumentException("Wrong balance!");
+                }
+
+                if (!Enum.IsDefined(typeof(Car.CarTypes), Type))
+                {
+                    return new Response((int)HttpStatusCode.NotFound, new Dictionary<string, string>() { { "Error", "Type isn't in list of types!" } });
+                }
+
+                ++LastAddedCarId;
+
+                if (Balance <= 0)
+                {
+                    Balance = 0;
+                }
+                else
+                {
+                    TransactionList.Add(new Transaction(LastAddedCarId, Balance));
+                }
+
+                var car = new Car(
+                    LastAddedCarId,
+                    Balance,
+                    (Car.CarTypes)Type
+                );
+                CarList.Add(car);
+
+                return new Response((int)HttpStatusCode.Created, car);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
-                Console.WriteLine("Wrong input data");
+                return new Response((int)HttpStatusCode.Conflict, new Dictionary<string, string>() { { "Error", ex.Message } });
             }
         }
 
-        public void RemoveCar(string id)
+        public Response RemoveCar(string id)
         {
-            if (int.TryParse(id, out int carId))
+            try
             {
-                try
+                if (!int.TryParse(id, out int Id))
                 {
-                    var car = CarList.SingleOrDefault(c => c.Id == carId);
-                    if (car != null || car.Balance >= 0)
-                        CarList.Remove(car);
+                    throw new ArgumentException("Wrong car id!");
                 }
-                catch (ArgumentNullException)
+
+                var car = CarList.SingleOrDefault(c => c.Id == Id);
+                if (car == null)
                 {
-                    Console.WriteLine("Car ID has not defined");
+                    return new Response((int)HttpStatusCode.NotFound, new Dictionary<string, string>() { { "Error", "Car not found!" } });
                 }
-                catch (ArgumentOutOfRangeException)
+
+                if (car.Balance < 0)
                 {
-                    Console.WriteLine("Choose correct ID");
+                    return new Response((int)HttpStatusCode.OK, new Dictionary<string, string>() { { "Error", "Сar has a negative balance!" } });
                 }
+
+                CarList.Remove(car);
+                return new Response((int)HttpStatusCode.Created, null);
+            }
+            catch (ArgumentException ex)
+            {
+                return new Response((int)HttpStatusCode.BadRequest, new Dictionary<string, string>() { { "Error", ex.Message } });
             }
         }
 
-        public List<Car> GetCarsList()
+        public Response GetCarsList()
         {
-            return CarList;
+            return new Response((int)HttpStatusCode.OK, CarList);
         }
 
-        public Car GetCar(string id)
+        public Response GetCar(string id)
         {
-            if (int.TryParse(id, out int carId))
+            try
             {
-                return CarList.Single(c => c.Id == carId);
+                if (!int.TryParse(id, out int Id))
+                {
+                    throw new ArgumentException("Wrong arguments!");
+                }
+                var car = CarList.SingleOrDefault(c => c.Id == Id);
+                if (car == null)
+                {
+                    return new Response((int)HttpStatusCode.NotFound, new Dictionary<string, string>() { { "Error", "Car not found!" } });
+                }
+
+                return new Response((int)HttpStatusCode.OK, car);
             }
-            return null;
+            catch (ArgumentException ex)
+            {
+                return new Response((int)HttpStatusCode.BadRequest, new Dictionary<string, string>() { { "Error", ex.Message } });
+            }
         }
 
-        public Car RaiseCarBalance(string id, string sum)
+        public Response RaiseCarBalance(string id, string sum)
         {
-            if (int.TryParse(id, out int carId) && int.TryParse(sum, out int cash))
+            try
             {
-                try
+                if (!int.TryParse(id, out int Id))
                 {
-                    var car = CarList.Single(c => c.Id == carId);
-                    if (car != null)
-                        car.ChangeBalance(cash, true);
-                    TransactionList.Add(new Transaction(carId, cash));
-                    return car;
+                    throw new ArgumentException("Wrong car id!");
                 }
-                catch (ArgumentNullException)
+
+                if (!int.TryParse(sum, out int Sum))
                 {
-                    Console.WriteLine("Something went wrong");
+                    throw new ArgumentException("Wrong sum count!");
                 }
+
+                var car = CarList.SingleOrDefault(c => c.Id == Id);
+                if (car == null)
+                {
+                    return new Response((int)HttpStatusCode.NotFound, new Dictionary<string, string>() { { "Error", "Car not found!" } });
+                }
+
+                car.ChangeBalance(Sum);
+                TransactionList.Add(new Transaction(Id, Sum));
+                return new Response((int)HttpStatusCode.OK, car);
             }
-            return null;
+            catch (ArgumentException ex)
+            {
+                return new Response((int)HttpStatusCode.BadRequest, new Dictionary<string, string>() { { "Error", ex.Message } });
+            }
         }
 
         public void TakeFineFromBalance(object StateObj)
@@ -114,56 +181,68 @@ namespace ParkingLibrary
             foreach (var car in State.CarList)
             {
                 price = Settings.prices[car.CarType];
-                sum = (car.Balance < 0) ? price * Settings.fine : price;
+                sum = (car.Balance >= 0) ? price * (-1) : price * Settings.fine * (-1);
 
-                car.ChangeBalance(sum, false);
+                car.ChangeBalance(sum);
                 State.TransactionList.Add(new Transaction(car.Id, sum * (-1)));
                 State.EarnedMoney += sum;
                 State.LastMinuteMoney += sum;
             }
         }
 
-        public int GetFreePlacesCount()
+        public Response GetFreePlacesCount()
         {
-            return Settings.totalSpace - CarList.Count();
+            return new Response((int)HttpStatusCode.OK, Settings.totalSpace - CarList.Count());
         }
 
-        public int UsingPlacesCount()
+        public Response UsingPlacesCount()
         {
-            return CarList.Count();
+            return new Response((int)HttpStatusCode.OK, CarList.Count());
         }
 
-        public int GetEarnedMoney()
+        public Response GetEarnedMoney()
         {
-            return EarnedMoney;
+            return new Response((int)HttpStatusCode.OK, EarnedMoney);
         }
 
-        public List<Transaction> GetLastMinuteTransactions()
+        public Response GetLastMinuteTransactions()
         {
-            return (from transaction in TransactionList
-                    where transaction.DateTime.AddMinutes(1).Minute >= DateTime.Now.Minute
-                    select transaction)
-                    .ToList();
+            List<Transaction> list = (from transaction in TransactionList
+                                      where transaction.DateTime.AddMinutes(1).Minute >= DateTime.Now.Minute
+                                      select transaction)
+                                      .ToList();
+
+            return new Response((int)HttpStatusCode.OK, list);
         }
 
-        public List<Transaction> GetLastMinuteTransactions(string id)
+        public Response GetLastMinuteTransactions(string id)
         {
-            if (int.TryParse(id, out int carId))
+            try
             {
-                return (from transaction in TransactionList
-                        where transaction.DateTime.AddMinutes(1).Minute >= DateTime.Now.Minute
-                        select transaction)
-                    .ToList();
+                if (!int.TryParse(id, out int Id))
+                {
+                    throw new ArgumentException("Wrong arguments!");
+                }
+                List<Transaction> list = (from transaction in TransactionList
+                                          where transaction.DateTime.AddMinutes(1).Minute >= DateTime.Now.Minute
+                                          where transaction.CarId == Id
+                                          select transaction)
+                                          .ToList();
+
+                return new Response((int)HttpStatusCode.OK, list);
             }
-            return null;
+            catch (ArgumentException ex)
+            {
+                return new Response((int)HttpStatusCode.BadRequest, new Dictionary<string, string>() { { "Error", ex.Message } });
+            }
         }
 
         public void LogLastMinuteMoney(object StateObj)
         {
-            Parking State = (Parking)StateObj;
-            string log = DateTime.Now.ToString("MM.dd.yyyy HH:mm ") + State.LastMinuteMoney;
             try
             {
+                Parking State = (Parking)StateObj;
+                string log = DateTime.Now.ToString("MM.dd.yyyy HH:mm +") + State.LastMinuteMoney;
                 using (StreamWriter sw = new StreamWriter(Settings.filePath, true, Encoding.Default))
                 {
                     sw.WriteLine(log);
@@ -176,40 +255,48 @@ namespace ParkingLibrary
             }
             catch (IOException ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.Message);
             }
         }
 
-        public List<Tuple<string, string, string>> ShowAllTransactions()
+        public Response ShowAllTransactions()
         {
-            List<Tuple<string, string, string>> data = new List<Tuple<string, string, string>>();
             try
             {
-                using (StreamReader sw = new StreamReader(Settings.filePath, Encoding.Default))
+                var list = new List<Dictionary<string, string>>();
+                string line = String.Empty;
+                string[] token = new string[3];
+                using (StreamReader sr = new StreamReader(Settings.filePath, Encoding.Default))
                 {
-                    string line;
-                    while ((line = sw.ReadLine()) != null)
+                    do
                     {
-                        string[] token = new string[3];
-                        token = line.Split(" ");
-                        data.Add(Tuple.Create(token[0], token[1], token[2]));
-                    }
+                        line = sr.ReadLine();
+                        if (line != String.Empty)
+                        {
+                            token = line.Split(" ");
+                            list.Add(new Dictionary<string, string>()
+                            {
+                                { "Date", token[0] },
+                                { "Time", token[1] },
+                                { "Cash", token[2] },
+                            });
+                        }
+                    } while (!sr.EndOfStream);
                 }
-                return data;
+                return new Response((int)HttpStatusCode.OK, list);
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine("File not found!");
+                return new Response((int)HttpStatusCode.InternalServerError, new Dictionary<string, string>() { { "Error", "File not found!" } });
             }
             catch (FileLoadException)
             {
-                Console.WriteLine("File not found!");
+                return new Response((int)HttpStatusCode.InternalServerError, new Dictionary<string, string>() { { "Error", "Error while load file!" } });
             }
             catch (IOException ex)
             {
-                Console.WriteLine(ex);
+                return new Response((int)HttpStatusCode.InternalServerError, new Dictionary<string, string>() { { "Error", ex.Message } });
             }
-            return new List<Tuple<string, string, string>>();
         }
     }
 }

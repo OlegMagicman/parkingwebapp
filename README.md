@@ -14,12 +14,19 @@ dotnet run
 ## API Reference  
 ### Cars  
 
-| Method    | HTTP Request              | Description             |
-| --------- | ------------------------- | ----------------------- |
-| GetCars   | GET /api/Cars             | Return list of cars     |
-| GetCar    | GET /api/Cars/{id}        | Return info about car   |
-| RemoveCar | DELETE /api/Cars/{id}     | Remove car from parking |
-| AddCar    | POST /api/Cars/{cartype}  | Add car to parking      |
+| Method    | HTTP Request                     | Description                            |
+| --------- | -------------------------------- | -------------------------------------- |
+| GetCars   | GET /api/Cars                    | Return list of cars                    |
+| GetCar    | GET /api/Cars/{id}               | Return info about car                  |
+| RemoveCar | DELETE /api/Cars/{id}            | Remove car from parking                |
+| AddCar    | POST /api/Cars/{type}            | Add car to parking                     |
+| AddCar    | POST /api/Cars/{type}/{balance}  | Add car to parking with custom balance |
+  
+Available car types:
+* 1 - passengers
+* 2 - trucks
+* 3 - busses
+* 4 - motorcycles
 
 ### Parking  
 
