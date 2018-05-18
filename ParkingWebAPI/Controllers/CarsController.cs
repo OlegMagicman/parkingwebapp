@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,39 +14,52 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Cars")]
     public class CarsController : Controller
     {
-        public DataLoadService service { get; set; }
+        private readonly DataLoadService Service;
+        private new ParkingLibrary.Response Response { get; set; }
 
         public CarsController(DataLoadService service)
         {
-            this.service = service;
+            this.Service = service;
         }
 
         // GET: api/Cars
         [HttpGet]
-        public IEnumerable<object> GetCars()
+        public IActionResult GetCars()
         {
-            return service.parking.GetCarsList();
+            Response = Service.parking.GetCarsList();
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // GET: api/Cars/5
         [HttpGet("{id}")]
-        public object GetCar(string id)
+        public IActionResult GetCar(string id)
         {
-            return service.parking.GetCar(id);
+            Response = Service.parking.GetCar(id);
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // DELETE: api/Cars/5
         [HttpDelete("{id}")]
-        public void DeleteCar(string id)
+        public IActionResult DeleteCar(string id)
         {
-            service.parking.RemoveCar(id);
+            Response = Service.parking.RemoveCar(id);
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // POST: api/Cars/5
-        [HttpPost("{cartype}")]
-        public void AddCar(string cartype)
+        [HttpPost("{type}")]
+        public IActionResult AddCar(string type)
         {
-            service.parking.AddCar(cartype);
+            Response = Service.parking.AddCar(type, null);
+            return StatusCode(Response.Status, Response.Data);
+        }
+
+        // POST: api/Cars/1/5
+        [HttpPost("{type}/{balance}")]
+        public IActionResult AddCar(string type, string balance)
+        {
+            Response = Service.parking.AddCar(type, balance);
+            return StatusCode(Response.Status, Response.Data);
         }
     }
 }

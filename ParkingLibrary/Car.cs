@@ -10,21 +10,19 @@ namespace ParkingLibrary
     {
         public int Id { get; }
         public int Balance { get; private set; }
-        public int CarType { get; }
+        public CarTypes CarType { get; }
+        public enum CarTypes : int { passager, truck, bus, motorcycles };
 
-        public Car(int id, int carType)
+        public Car(int id, int balance, CarTypes type)
         {
             this.Id = id;
-            this.Balance = 0;
-            this.CarType = carType;
+            this.Balance = balance;
+            this.CarType = type;
         }
 
-        public void ChangeBalance(int count, bool sign)
+        public void ChangeBalance(int count)
         {
-            if (sign == true)
-                this.Balance += count;
-            else
-                this.Balance -= count;
+            this.Balance += count;
         }
     }
 }

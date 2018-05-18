@@ -12,32 +12,36 @@ namespace ParkingWebAPI.Controllers
     [Route("api/Parking")]
     public class ParkingController : Controller
     {
-        public DataLoadService service { get; set; }
+        private readonly DataLoadService Service;
+        private new ParkingLibrary.Response Response { get; set; }
 
         public ParkingController(DataLoadService service)
         {
-            this.service = service;
+            this.Service = service;
         }
 
         // GET: api/Parking/free
-        [HttpGet]
-        public int GetFreePlaces()
+        [HttpGet("free")]
+        public IActionResult GetFreePlaces()
         {
-            return service.parking.GetFreePlacesCount();
+            Response = Service.parking.GetFreePlacesCount();
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // GET: api/Parking/using
-        [HttpGet]
-        public int GetUsingPlaces()
+        [HttpGet("using")]
+        public IActionResult GetUsingPlaces()
         {
-            return service.parking.UsingPlacesCount();
+            Response = Service.parking.UsingPlacesCount();
+            return StatusCode(Response.Status, Response.Data);
         }
 
         // GET: api/Parking/earned
-        [HttpGet]
-        public int GetEarnedMoney()
+        [HttpGet("earned")]
+        public IActionResult GetEarnedMoney()
         {
-            return service.parking.GetEarnedMoney();
+            Response = Service.parking.GetEarnedMoney();
+            return StatusCode(Response.Status, Response.Data);
         }
     }
 }
