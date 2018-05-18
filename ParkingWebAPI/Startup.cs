@@ -26,6 +26,7 @@ namespace ParkingWebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddSingleton<Parking>();
             services.AddSingleton<DataLoadService>();
         }
 
