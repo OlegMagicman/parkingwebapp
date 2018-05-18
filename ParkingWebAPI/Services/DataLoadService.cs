@@ -11,13 +11,13 @@ namespace ParkingWebAPI.Services
     {
         public Parking parking { get; set; }
 
-        private static readonly Lazy<DataLoadService> lazy = new Lazy<DataLoadService>(() => new DataLoadService(Parking.Instance));
+        private static readonly Lazy<DataLoadService> lazy = new Lazy<DataLoadService>(() => new DataLoadService());
 
         public static DataLoadService Instance { get { return lazy.Value; } }
 
-        public DataLoadService(Parking parking)
+        public DataLoadService()
         {
-            this.parking = parking;
+            this.parking = Parking.Instance;
         }
     }
 }
