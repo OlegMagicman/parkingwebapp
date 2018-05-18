@@ -7,8 +7,14 @@ All program settings described in Settings class.
 
 ## How to run  
 ```
+cd ParkingWebAPI  
 dotnet build  
 dotnet run  
+```
+or
+```
+dotnet build  
+dotnet run --project ParkingWebAPI
 ```
 
 ## API Reference  
